@@ -77,7 +77,7 @@ git push
 
 ```bash
 pip install -r requirements.txt pyinstaller
-pyinstaller --noconfirm --windowed --onefile --name "팜마켓_발주_송금요청_생성기" --add-data "config;config" main.py
+pyinstaller --noconfirm --windowed --onefile --name "팜마켓_발주_송금요청_생성기" --paths src --add-data "config;config" main.py
 ```
 
 빌드된 exe는 `dist/` 안에 생깁니다. 실행 시 exe와 같은 폴더에 `💰팜마켓 발주정보.xlsx`를 두어야 합니다.

@@ -37,9 +37,13 @@ MASTER_FILENAME = "💰팜마켓 발주정보.xlsx"
 
 
 def app_base_dir() -> Path:
-    """PyInstaller로 묶였을 때는 exe가 있는 폴더, 개발 중에는 프로젝트 루트."""
+    """PyInstaller로 묶였을 때는 exe(또는 .app)가 있는 폴더, 개발 중에는 프로젝트 루트."""
     if getattr(sys, "frozen", False):
-        return Path(sys.executable).resolve().parent
+        exe_path = Path(sys.executable).resolve()
+        for parent in exe_path.parents:
+            if parent.suffix == ".app":
+                return parent.parent  # macOS 앱 번들이면 .app이 놓인 폴더 기준
+        return exe_path.parent
     return Path(__file__).resolve().parents[2]
 
 
