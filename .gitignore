@@ -7,3 +7,8 @@ dist/
 *.spec
 data/master/*.xlsx
 data/samples/
+data/templates_extracted/
+secrets/naver_api.json
+output/
+automation/naver_confirm_log.txt
+.DS_Store
