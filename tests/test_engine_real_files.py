@@ -51,11 +51,12 @@ def test_damo_260914_file(project_root, catalog, rules):
     r = result.supplier_results["다모식품"]
     assert r.is_valid
     assert r.account == "국민 790401-01-336718 (다모식품)"
+    # "60g x 20봉" 1개는 10봉 기준 2개로 환산되어 60g 10봉 묶음에 합산된다 (9 + 2 = 11)
     sizes = {item.product_name: item.quantity for item in r.breakdown}
-    assert sizes["반시 고구마말랭이 60g 20봉"] == 1
-    assert sizes["반시 고구마말랭이 60g 10봉"] == 9
+    assert sizes["반시 고구마말랭이 60g 10봉"] == 11
     assert sizes["반시 고구마말랭이 100g 10봉"] == 13
-    assert r.goods_total == 1 * 20000 + 9 * 10000 + 13 * 16000
+    assert "반시 고구마말랭이 60g 20봉" not in sizes
+    assert r.goods_total == 11 * 10000 + 13 * 16000  # 20g짜리 1개(20,000원)도 10,000*2로 동일하게 반영됨
     assert r.shipment_count == 23  # 23명 전원 다른 주소
     assert r.grand_total == r.goods_total + 23 * 2500
 

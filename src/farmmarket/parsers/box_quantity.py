@@ -10,7 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from ..models import OrderLine, ValidationIssue
-from .base import ParseResult, normalize_header
+from .base import ParseResult, normalize_bong_pack, normalize_header
 
 _REQUIRED_BASE = {"받는분성명", "품목명"}
 _QUANTITY_KEYS = ["박스수량", "수량"]
@@ -102,6 +102,20 @@ def parse(path: Path, rows: list[tuple]) -> ParseResult:
             )
             continue
 
+        product_name = str(product).strip()
+        normalized_name, normalized_qty, bong_error = normalize_bong_pack(product_name, qty)
+        if bong_error:
+            issues.append(
+                ValidationIssue(
+                    severity="error",
+                    code="bong_pack_not_multiple_of_ten",
+                    message=bong_error,
+                    source_file=path.name,
+                    product=product_name,
+                )
+            )
+            continue
+
         lines.append(
             OrderLine(
                 source_file=path.name,
@@ -109,9 +123,9 @@ def parse(path: Path, rows: list[tuple]) -> ParseResult:
                 recipient=str(recipient).strip() if recipient else None,
                 address=str(address).strip() if address else None,
                 phone=str(phone).strip() if phone else None,
-                quantity=qty,
+                quantity=normalized_qty,
                 quantity_unit="box",
-                product_name_raw=str(product).strip(),
+                product_name_raw=normalized_name,
                 note=str(note).strip() if note else None,
                 declared_shipping_fee=_num(cell("shipping_fee")),
             )
