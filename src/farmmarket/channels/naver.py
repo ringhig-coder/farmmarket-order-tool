@@ -123,9 +123,24 @@ def fetch_order_details(token: str, product_order_ids: list[str]) -> list[dict]:
     return resp.json()["data"]
 
 
-def order_details_to_lines(details: list[dict]) -> tuple[list[OrderLine], list[str]]:
+def naver_product_key(product_id: str, product_option: str | None) -> str:
+    """productId(+옵션)로 매핑 키를 만든다. 이름은 마케팅용으로 바뀌어도 이 키는 안정적이다."""
+    if product_option:
+        return f"{product_id}::{product_option}"
+    return product_id
+
+
+def order_details_to_lines(
+    details: list[dict], product_map: dict[str, dict] | None = None
+) -> tuple[list[OrderLine], list[str]]:
     """네이버 주문 상세 목록 -> 내부 OrderLine 목록. 수취인 정보가 아직 없는(미확인) 주문은
-    건너뛰고 productOrderId를 별도로 반환한다 (임의로 계산하지 않고 알려주기 위함)."""
+    건너뛰고 productOrderId를 별도로 반환한다 (임의로 계산하지 않고 알려주기 위함).
+
+    product_map에 등록된 productId(+옵션)가 있으면 그 매핑(업체/마스터 상품명)을 우선 사용하고,
+    없으면 네이버가 보내준 원본 상품명 그대로 둔다 (엔진이 이름 기반으로 한 번 더 시도, 그래도
+    없으면 상품 매칭 실패로 보고되어 관리자가 이 상품을 product_map에 등록할 수 있게 된다).
+    """
+    product_map = product_map or {}
     lines: list[OrderLine] = []
     pending: list[str] = []
 
@@ -141,17 +156,26 @@ def order_details_to_lines(details: list[dict]) -> tuple[list[OrderLine], list[s
         detailed = shipping.get("detailedAddress")
         full_address = f"{address} {detailed}".strip() if detailed else address
 
+        product_id = str(product_order.get("productId", ""))
+        product_option = product_order.get("productOption")
+        key = naver_product_key(product_id, product_option)
+        mapped = product_map.get(key)
+
+        company_hint = mapped["company"] if mapped else None
+        product_name = mapped["product_name"] if mapped else product_order["productName"]
+
         lines.append(
             OrderLine(
                 source_file=f"naver:{pid}",
-                company_hint=None,
+                company_hint=company_hint,
                 recipient=shipping.get("name"),
                 address=full_address,
                 phone=shipping.get("tel1"),
                 quantity=float(product_order["quantity"]),
                 quantity_unit="unit",
-                product_name_raw=product_order["productName"],
+                product_name_raw=product_name,
                 note=None,
+                external_product_id=key,
             )
         )
     return lines, pending

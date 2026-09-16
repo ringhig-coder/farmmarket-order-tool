@@ -36,6 +36,16 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MASTER_PATH = PROJECT_ROOT / "data" / "master" / "💰팜마켓 발주정보.xlsx"
 CREDS_PATH = PROJECT_ROOT / "secrets" / "naver_api.json"
 LOG_PATH = PROJECT_ROOT / "automation" / "naver_confirm_log.txt"
+PRODUCT_MAP_PATH = PROJECT_ROOT / "config" / "naver_product_map.json"
+
+
+def load_product_map(path: Path) -> dict:
+    import json
+
+    if not path.exists():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return {k: v for k, v in data.items() if not k.startswith("_")}
 
 
 def log_confirmed(product_order_ids: list[str]) -> None:
@@ -87,7 +97,8 @@ def main() -> int:
         print("(--confirm 옵션이 없어서 발주확인은 하지 않았습니다. 이미 수동으로 확인된 주문만 처리합니다.)")
 
     details = fetch_order_details(token, pending_ids)
-    lines, still_pending = order_details_to_lines(details)
+    product_map = load_product_map(PRODUCT_MAP_PATH)
+    lines, still_pending = order_details_to_lines(details, product_map)
 
     if still_pending:
         print(f"\n⚠ 아직 발주확인이 안 되어 수취인 정보가 없는 주문 {len(still_pending)}건 (건너뜀):")

@@ -54,11 +54,12 @@ def resolve_line_product(
     matches = deduped
 
     if len(matches) == 0:
+        id_hint = f" (상품키: {line.external_product_id})" if line.external_product_id else ""
         issues.append(
             ValidationIssue(
                 severity="error",
                 code="product_not_found",
-                message=f"⚠ 발주정보에서 '{raw}' 상품을 찾을 수 없습니다.",
+                message=f"⚠ 발주정보에서 '{raw}' 상품을 찾을 수 없습니다.{id_hint}",
                 source_file=line.source_file,
                 company=hint,
                 product=raw,

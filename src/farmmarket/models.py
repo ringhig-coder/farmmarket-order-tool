@@ -35,6 +35,7 @@ class OrderLine:
     declared_unit_price: float | None = None
     declared_shipping_fee: float | None = None
     declared_total: float | None = None
+    external_product_id: str | None = None  # 채널(네이버 등)의 고유 상품번호. 이름보다 안정적인 매칭 키.
 
 
 @dataclass
