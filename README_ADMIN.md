@@ -59,9 +59,28 @@ cli.py                     # GUI 이전 단계 확인용 CLI
 
 `docs/master-analysis.md`의 "발견된 미해결 항목" 참고 (한칼식품 부가세 규칙, 상품명 불일치 등).
 
-## EXE 재빌드 (예정)
+## EXE 재빌드
 
-아직 GitHub Actions 워크플로우를 만들지 않았습니다. STEP 5(GUI)와 STEP 6(드래그앤드롭)까지 끝난 뒤, `.github/workflows/build-exe.yml`을 추가해 `windows-latest` 러너에서 PyInstaller로 빌드하도록 구성할 예정입니다.
+`.github/workflows/build-exe.yml`이 `main` 브랜치에 push될 때마다 `windows-latest` 러너에서 자동으로 테스트를 돌리고 PyInstaller로 exe를 빌드합니다. GitHub 저장소의 Actions 탭 → 완료된 워크플로우 실행 → Artifacts에서 exe를 내려받으면 됩니다.
+
+코드만 수정하고 새로 빌드하고 싶으면:
+
+```bash
+git add -A
+git commit -m "설명"
+git push
+```
+
+만 하면 됩니다. 마스터 엑셀 자체는 수정해도 git에 올라가지 않으니(민감정보 때문에 의도적으로 제외) 별도 조치가 필요 없습니다.
+
+로컬(Windows)에서 직접 빌드하려면:
+
+```bash
+pip install -r requirements.txt pyinstaller
+pyinstaller --noconfirm --windowed --onefile --name "팜마켓_발주_송금요청_생성기" --add-data "config;config" main.py
+```
+
+빌드된 exe는 `dist/` 안에 생깁니다. 실행 시 exe와 같은 폴더에 `💰팜마켓 발주정보.xlsx`를 두어야 합니다.
 
 ## 오류 로그
 
